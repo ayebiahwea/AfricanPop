@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset='utf-8' />
+  <title>AfroPop</title>
+  <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+  <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.53.1/mapbox-gl.js'></script>
+  <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.53.1/mapbox-gl.css' rel='stylesheet' />
+  <script src='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v3.1.2/mapbox-gl-geocoder.min.js'></script>
+  <link rel='stylesheet' href='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v3.1.2/mapbox-gl-geocoder.css' type='text/css' />
+  <script src='https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js'></script>
+  <script src='C:\Users\Anthony Ayebiahwe\Desktop\Ghana\City_Data1.geojson' > </script>
+  <script src='https://d3js.org/d3.v4.min.js'></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+    }
+
+    #map {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 100%;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id='map'></div>
+  <script>
+    mapboxgl.accessToken = 'pk.eyJ1IjoiYXllYmlhaHdlYSIsImEiOiJjanRrZWdqeTQzYTAwNDRvOXRmMjE2dmQzIn0.egyoNyK7vAjxrhsqDgeDqQ';
+    var map = new mapboxgl.Map({
+      container: 'map',
+      style: 'mapbox://styles/ayebiahwea/cjtq37x7i0qgr1fmj6fojnvjw',
+      center: [-1.62443,6.68848],
+      zoom: 12
+    });
+
+    map.on('load', function() {
+      var geocoder = new MapboxGeocoder({
+        accessToken: mapboxgl.accessToken,
+        zoom: 13,
+        placeholder: "Let's AfroPop"
+      });
+
+      map.addControl(geocoder, 'top-left');
+
+      var marker = new mapboxgl.Marker({icon:'Ghana.png'})
+
+      geocoder.on('result', function(data) {
+
+        var point = data.result.center;
+        var tileset = 'ayebiahwea.cjtq2u2gj00vi65m3re6unakd-23vru';
+        var radius = 1609;
+        var limit = 50;
+        var query = 'mapbox://styles/ayebiahwea/cjtmzzkm32zm21fqinmwht6cf' + tileset + '/tilequery/' + point[0] + ',' + point[1] + '.json?radius=' + radius + '&limit= ' + limit + ' &access_token=' + mapboxgl.accessToken;
+
+        marker.setLngLat(point).addTo(map);
+
+        $.ajax({
+          method: 'GET',
+          url: query,
+        }).done(function(data) {
+          map.getSource('tilequery').setData(data);
+        })
+      });
+
+      map.addSource('tilequery', {
+        type: "geojson",
+        data: {
+          "type": "FeatureCollection",
+          "features": []
+        }
+      });
+
+      map.addLayer({
+        id: "tilequery-points",
+        type: "circle",
+        source: "tilequery",
+        paint: {
+          "circle-stroke-color": "white",
+          "circle-stroke-width": {
+            stops: [
+              [0, 0.1],
+              [18, 3]
+            ],
+            base: 5
+          },
+          "circle-radius": {
+            stops: [
+              [12, 5],
+              [22, 180]
+            ],
+            base: 5
+          }
+        }
+      });
+
+      var popup = new mapboxgl.Popup;
+
+      var topByAdminOne = d3.nest().key(function(d){
+      return d.boundaries_admin_1;
+    })
+    .rollup(function(leaves){
+      return d3.nest().key(function(d){
+        return d.track_name
+      })
+      .rollup(function(leaves_sub){
+        return d3.sum(leaves_sub,function(d){return +d.views;});
+      })
+      .entries(leaves).sort(function(a,b){return +b.value - +a.value;}).slice(0,1)[0].key;
+    })
+    .entries(City_Data1)
+
+      map.on('mouseleave', 'tilequery-points', function() {
+        map.getCanvas().style.cursor = '';
+        popup.remove();
+      });
+
+	  var stopsAdminOneLine = topByAdminOne.map(function(d){
+    var color;
+    if (topSongs.slice(0,colorSliceAmount).indexOf(d.value) > -1){
+      color = colorsManual[topSongs.slice(0,colorSliceAmount).indexOf(d.value)]["label"];
+    }
+    else{
+      color = otherScale(topSongs.indexOf(d.value));
+    }
+    return [d.key,color]
+  });
+
+    })
+
+map.on('click', function(e) {
+      var features = map.queryRenderedFeatures(e.point,{ layers: ['medium-city-label-2','country-label','major-city-label-2','minor-city-label-2'] });
+      if(features.length > 0 && markerTimeout == false){ var trackData = features[0].properties; }
+});
+
+// Adding the data--- I need to change this part to load the data.
+
+  </script>
+
+</body>
+
+</html>
