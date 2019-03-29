@@ -1,2 +1,3 @@
-# AfricanPop(Where Songs are famous)
-![AfricaPop](https://afromuziq.files.wordpress.com/2015/07/urban-african-dance.jpg)
+# Touring Major Cities in Ghana
+![Major Cities in Ghana](http://www.ghana.travel/wp-content/uploads/2016/10/coconut_hotel.jpg)
+
